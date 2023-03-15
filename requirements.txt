@@ -1,0 +1,4 @@
+kaggle
+openai
+tqdm
+dotenv
