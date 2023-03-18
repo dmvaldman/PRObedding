@@ -2,3 +2,4 @@ kaggle
 openai
 tqdm
 dotenv
+datasets

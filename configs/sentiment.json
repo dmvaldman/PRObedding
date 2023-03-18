@@ -1,15 +1,11 @@
 {
     "model": "sklearn.linear_model.LogisticRegression",
-    "classes": [-1,0,1],
-    "datasets": {
-        "yash612/stockmarket-sentiment-dataset": {
-
-        },
-        "yasserh/twitter-tweets-sentiment-dataset": {
-
-        },
-        "yasserh/imdb-movie-ratings-sentiment-analysis": {
-
+    "classes": [0,1],
+    "datasets": [
+        {
+            "path": "rotten_tomatoes",
+            "split": ["train", "test"],
+            "columns": ["text", "label"]
         }
-    }
+    ]
 }

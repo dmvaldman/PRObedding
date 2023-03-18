@@ -4,20 +4,19 @@ import openai
 from tqdm import tqdm
 import os
 from dotenv import load_dotenv
-import kaggle
 import pandas as pd
 from tenacity import retry, stop_after_attempt
+from datasets import load_dataset
 
 load_dotenv()
 
 openai_key = os.getenv('OPENAI_API_KEY')
 
 openai.api_key = openai_key
-kaggle.api.authenticate()
 
 MAX_CONTENT_LENGTH = 8191
 
-@retry(stop=stop_after_attempt(3))
+@retry(stop=stop_after_attempt(5))
 def get_openai_embeddings(inputs, model):
     # make sure each review is a under a certain length
     for index, input in enumerate(inputs):
@@ -34,9 +33,9 @@ def get_openai_embeddings(inputs, model):
     return embeddings
 
 class Dataset():
-    def __init__(self, type, kaggle_path, config=None, save=False):
+    def __init__(self, type, config=None, save=False, split='train'):
         self.type = type
-        self.kaggle_path = kaggle_path
+        self.dataset_path = config['path']
 
         self.local_path = None
         self.encoding = 'utf-8'
@@ -47,43 +46,24 @@ class Dataset():
         self.ratings = np.uint([])
         self.embeds = np.float64([])
 
-        self.parse_config(config)
-        self.download()
-        self.preprocess_data()
+        self.download(split=split)
         self.create_text_embeddings()
 
         if save:
             self.save()
 
-    def parse_config(self, config):
-        unpack_name = config["unpack_name"]
-        encoding = config["encoding"] if "encoding" in config else 'utf-8'
+    def download(self, split='train'):
+        dataset = load_dataset(self.dataset_path, split=split)
+        text_key, label_key = self.config["columns"]
 
-        self.local_path = f'datasets/{self.type}/{unpack_name}'
-        self.encoding = encoding
+        def delete_nulls(row):
+            return all(v is not None for v in row.values())
 
-    def download(self):
-        path = f'datasets/{self.type}/'
-        kaggle.api.dataset_download_files(self.kaggle_path, path=path, force=True, unzip=True)
-        self.df = pd.read_csv(self.local_path, encoding=self.encoding)
+        # apply the filter to the dataset
+        dataset = dataset.filter(delete_nulls)
 
-    def preprocess_data(self):
-        ratings_key = self.config["columns"]["rating"]["label"]
-        text_key = self.config["columns"]["text"]["label"]
-
-        # delete any rows that have missing values
-        self.df = self.df.dropna(subset=[ratings_key, text_key])
-
-        if "map" in self.config["columns"]["rating"]:
-            map = self.config["columns"]["rating"]["map"]
-            self.df[ratings_key] = self.df[ratings_key].replace(map.keys(), map.values())
-        self.ratings = np.array(self.df[ratings_key].tolist(), dtype=np.uint)
-
-        text_key = self.config["columns"]["text"]["label"]
-        if "map" in self.config["columns"]["text"]:
-            map = self.config["columns"]["text"]["map"]
-            self.df[ratings_key] = self.df[ratings_key].replace(map.keys(), map.values())
-        self.texts = self.df[text_key].tolist()
+        self.texts = dataset[text_key]
+        self.ratings = np.array(dataset[label_key], dtype=np.uint)
 
     def create_text_embeddings(self, model="text-embedding-ada-002", batch_size=50):
         # check if embeddings already exist
@@ -110,8 +90,8 @@ class Dataset():
         return get_openai_embeddings(reviews_subset, model)
 
     def _get_save_path(self):
-        kaggle_path = self.kaggle_path.replace('/', '_')
-        path = f'embeddings/{self.type}/{kaggle_path}'
+        dataset_path = self.dataset_path.replace('/', '_')
+        path = f'embeddings/{self.type}/{dataset_path}'
         return path
 
     def save(self):
@@ -141,8 +121,8 @@ class MergedDataset():
         self.embeds = None
 
         datasets = config["datasets"]
-        for kaggle_path, config_dataset in datasets.items():
-            dataset = Dataset(type, kaggle_path, config_dataset, save=save)
+        for config in datasets:
+            dataset = Dataset(type, config, save=save)
             self.datasets.append(dataset)
 
         self._merge()

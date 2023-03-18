@@ -1,48 +1,21 @@
 {
     "model": "sklearn.linear_model.LogisticRegression",
     "classes": [0,1],
-    "datasets": {
-        "uciml/sms-spam-collection-dataset": {
-            "encoding": "iso-8859-1",
-            "unpack_name": "spam.csv",
-            "columns": {
-                "rating": {
-                    "label": "v1",
-                    "map": {
-                        "ham": 1,
-                        "spam": 0
-                    }
-                },
-                "text": {
-                    "label": "v2"
-                }
-            }
+    "datasets": [
+        {
+            "path": "sms_spam",
+            "split": ["train"],
+            "columns": ["sms", "label"]
         },
-        "venky73/spam-mails-dataset": {
-            "unpack_name": "spam_ham_dataset.csv",
-            "columns": {
-                "rating": {
-                    "label": "label_num"
-                },
-                "text": {
-                    "label": "text"
-                }
-            }
+        {
+            "path": "Ngadou/Spam_SMS",
+            "split": ["train", "test"],
+            "columns": ["email", "label"]
         },
-        "ozlerhakan/spam-or-not-spam-dataset": {
-            "unpack_name": "spam_or_not_spam.csv",
-            "columns": {
-                "rating": {
-                    "label": "label",
-                    "map": {
-                        "0": 1,
-                        "1": 0
-                    }
-                },
-                "text": {
-                    "label": "email"
-                }
-            }
+        {
+            "path": "adamlouly/enron_spam_data",
+            "split": ["train", "test"],
+            "columns": ["email", "label"]
         }
-    }
+    ]
 }
