@@ -47,10 +47,10 @@ class Dataset():
         self.embeds = np.float64([])
 
         self.download(split=split)
-        self.create_text_embeddings()
+        self.create_text_embeddings(split=split)
 
         if save:
-            self.save()
+            self.save(split)
 
     def download(self, split='train'):
         dataset = load_dataset(self.dataset_path, split=split)
@@ -65,9 +65,9 @@ class Dataset():
         self.texts = dataset[text_key]
         self.ratings = np.array(dataset[label_key], dtype=np.uint)
 
-    def create_text_embeddings(self, model="text-embedding-ada-002", batch_size=50):
+    def create_text_embeddings(self, model="text-embedding-ada-002", batch_size=50,split='train'):
         # check if embeddings already exist
-        is_loaded = self.load()
+        is_loaded = self.load(split=split)
 
         # if not, create them
         if not is_loaded:
@@ -89,13 +89,13 @@ class Dataset():
         reviews_subset = reviews[start:end]
         return get_openai_embeddings(reviews_subset, model)
 
-    def _get_save_path(self):
+    def _get_save_path(self, split):
         dataset_path = self.dataset_path.replace('/', '_')
-        path = f'embeddings/{self.type}/{dataset_path}'
+        path = f'embeddings/{self.type}/{dataset_path}/{split}/'
         return path
 
-    def save(self):
-        path = self._get_save_path()
+    def save(self, split='train'):
+        path = self._get_save_path(split)
 
         # make directory if it doesn't exist
         if not os.path.exists(path):
@@ -104,8 +104,8 @@ class Dataset():
         np.save(path + '/embeddings.npy', self.embeds)
         np.save(path + '/ratings.npy', self.ratings)
 
-    def load(self):
-        path = self._get_save_path()
+    def load(self, split='train'):
+        path = self._get_save_path(split)
 
         if os.path.exists(path + '/embeddings.npy') and os.path.exists(path + '/ratings.npy'):
             self.embeds = np.load(path + '/embeddings.npy')
@@ -115,14 +115,14 @@ class Dataset():
             return False
 
 class MergedDataset():
-    def __init__(self, type, config, save=False):
+    def __init__(self, type, config, save=False, split='train'):
         self.datasets = []
         self.ratings = None
         self.embeds = None
 
         datasets = config["datasets"]
         for config in datasets:
-            dataset = Dataset(type, config, save=save)
+            dataset = Dataset(type, config, save=save, split=split)
             self.datasets.append(dataset)
 
         self._merge()
@@ -131,17 +131,17 @@ class MergedDataset():
         self.embeds = np.vstack([dataset.embeds for dataset in self.datasets])
         self.ratings = np.hstack([dataset.ratings for dataset in self.datasets])
 
-    def create_text_embeddings(self, model="text-embedding-ada-002", batch_size=50):
+    def create_text_embeddings(self, model="text-embedding-ada-002", batch_size=50, split='train'):
         for dataset in self.datasets:
-            dataset.create_text_embeddings(model, batch_size)
+            dataset.create_text_embeddings(model, batch_size, split=split)
 
-    def save(self):
+    def save(self, split='train'):
         for dataset in self.datasets:
-            dataset.save()
+            dataset.save(split=split)
 
-    def load(self):
+    def load(self, split='train'):
         for dataset in self.datasets:
-            is_loaded = dataset.load()
+            is_loaded = dataset.load(split=split)
             if not is_loaded:
                 return False
         self._merge()

@@ -1,4 +1,3 @@
-kaggle
 openai
 tqdm
 dotenv

@@ -1,0 +1,9 @@
+{
+    "model": "Multinomial",
+    "datasets": [
+        {
+            "path": "ag_news",
+            "columns": ["text", "label"]
+        }
+    ]
+}

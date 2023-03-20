@@ -1,10 +1,8 @@
 {
-    "model": "sklearn.linear_model.LogisticRegression",
-    "classes": [0,1],
+    "model": "LogisticRegression",
     "datasets": [
         {
             "path": "rotten_tomatoes",
-            "split": ["train", "test"],
             "columns": ["text", "label"]
         }
     ]

@@ -1,0 +1,9 @@
+{
+    "model": "LogisticRegression",
+    "datasets": [
+        {
+            "path": "imdb",
+            "columns": ["text", "label"]
+        }
+    ]
+}

@@ -1,20 +1,16 @@
 {
-    "model": "sklearn.linear_model.LogisticRegression",
-    "classes": [0,1],
+    "model": "LogisticRegression",
     "datasets": [
         {
             "path": "sms_spam",
-            "split": ["train"],
             "columns": ["sms", "label"]
         },
         {
             "path": "Ngadou/Spam_SMS",
-            "split": ["train", "test"],
             "columns": ["email", "label"]
         },
         {
             "path": "adamlouly/enron_spam_data",
-            "split": ["train", "test"],
             "columns": ["email", "label"]
         }
     ]
