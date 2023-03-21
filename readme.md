@@ -10,13 +10,13 @@ It turns out that a simple linear classifier over OpenAI embeddings is competiti
 
 ## How good is it?
 
-Comparison to some text classification tasks on HuggingFace Leaderboards:
+Comparison to some text classification tasks on HuggingFace Leaderboards. PRObedding ranks either top 1 or 2 for each HF leaderboard tried thus far.
 
-| dataset | task | accuracy (leaderboard) | accuracy (ours) | Δ |
+| dataset | task | accuracy (top leaderboard) | accuracy (ours) | Leaderboard Position |
 |---------|------|------------------------| --------------- | - |
-| rotten tomatoes | binary classification | 84.0%  | 88.5% | +1.5% |
-| imdb | binary classification | 93.2%  | 93.0% | -0.2% |
-| ag news | multi classification | 93.9%  | 92.3% | -1.6% |
+| rotten tomatoes | binary classification | 84.0%  | 88.5% | 1 |
+| imdb | binary classification | 93.2%  | 93.0% | 2 |
+| ag news | multi classification | 93.9%  | 92.3% | 2 |
 
 ## How to use
 
