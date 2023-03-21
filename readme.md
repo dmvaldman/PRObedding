@@ -1,10 +1,10 @@
 # PRObedding
 
-A simple library for extracting directions in text emebdding space. Supports binary and multiclass classification on any HuggingFace text dataset using OpenAI embeddings.
+A simple library for extracting directions in text emebdding space. Supports binary and multiclass classification on any HuggingFace text dataset using OpenAI embeddings. Other models coming soon.
 
 ## Why?
 
-Have you ever wondered if there is a "spam/not spam" direction in embedding space? You can often train a linear classifier (ie a probe) on text embeddings and uncover a stable "direction" which can be used for downstream purposes. To classify any text embedding, all you essentially need to do is do a dot product against its with a direction.
+Have you ever wondered if there is a "spam/not spam" direction in embedding space? You can often train a linear classifier (ie a probe) on text embeddings and uncover a stable "direction" which can be used for downstream purposes. To classify any text embedding, all you need to do pretty much is dot product against it with a direction.
 
 It turns out that a simple linear classifier over OpenAI embeddings is competitive with current SoTA classifiers.
 
@@ -20,4 +20,4 @@ Comparison to some text classification tasks on HuggingFace Leaderboards:
 
 ## How to use
 
-Follow the notebook examples in the `/examples` directory.
+Follow the notebook examples in the `/examples` directory. You don't need a GPU, the linear probes are computed using old skool methods since they can be solved for exactly. Just make a new config file that specifies some dataset(s) as in the `/examples/configs` directory, follow the simple examples, and you're off to the races.

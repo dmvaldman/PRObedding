@@ -112,7 +112,7 @@ class Dataset():
     def load(self, split='train'):
         path = self._get_save_path(split)
 
-        if (os.path.exists(path + '/embeddings.npy') or os.path.exists(path + '/embeddings.npy')) and os.path.exists(path + '/ratings.npy'):
+        if (os.path.exists(path + '/embeddings.npy') or os.path.exists(path + '/embeddings.npz')) and os.path.exists(path + '/ratings.npy'):
             if os.path.exists(path + '/embeddings.npz'):
                 loaded_data = np.load(path + '/embeddings.npz')
                 self.embeds = np.concatenate([loaded_data[key] for key in loaded_data.keys()])
