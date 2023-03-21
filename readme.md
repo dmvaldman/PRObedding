@@ -20,4 +20,6 @@ Comparison to some text classification tasks on HuggingFace Leaderboards:
 
 ## How to use
 
-Follow the notebook examples in the `/examples` directory. You don't need a GPU, the linear probes are computed using old skool methods since they can be solved for exactly. Just make a new config file that specifies some dataset(s) as in the `/examples/configs` directory, follow the simple examples, and you're off to the races.
+Clone, install requirements, copy .env.dev -> .env with your openai key.
+
+Then run any notebook examples in the `/examples` directory. You don't need a GPU, the linear probes are computed using old skool methods since they can be solved for exactly. Just make a new config file that specifies some dataset(s) as in the `/examples/configs` directory, follow the simple examples, and you're off to the races.
