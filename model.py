@@ -36,7 +36,9 @@ class ClassificationModel():
         y_pred_class = self.model.predict(X_test)
 
         accuracy_score = metrics.accuracy_score(y_test, y_pred_class)
-        f1_score = metrics.f1_score(y_test, y_pred_class, average='weighted')
+        average = 'weighted' if self.model_type == 'Multinomial' else 'binary'
+
+        f1_score = metrics.f1_score(y_test, y_pred_class, average=average)
 
         return {
             'accuracy': accuracy_score,

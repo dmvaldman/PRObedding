@@ -38,8 +38,6 @@ class Dataset():
         self.dataset_path = config['path']
 
         self.local_path = None
-        self.encoding = 'utf-8'
-        self.df = None
         self.config = config
 
         self.texts = []
@@ -101,14 +99,26 @@ class Dataset():
         if not os.path.exists(path):
             os.makedirs(path)
 
-        np.save(path + '/embeddings.npy', self.embeds)
+        # if too large, save in chunks
+        if self.embeds.nbytes > 1e9:
+            chunk_size = 10000
+            chunks = np.array_split(self.embeds, chunk_size)
+            np.savez_compressed(path + '/embeddings.npz', *chunks)
+        else:
+            np.save(path + '/embeddings.npy', self.embeds)
+
         np.save(path + '/ratings.npy', self.ratings)
 
     def load(self, split='train'):
         path = self._get_save_path(split)
 
-        if os.path.exists(path + '/embeddings.npy') and os.path.exists(path + '/ratings.npy'):
-            self.embeds = np.load(path + '/embeddings.npy')
+        if (os.path.exists(path + '/embeddings.npy') or os.path.exists(path + '/embeddings.npy')) and os.path.exists(path + '/ratings.npy'):
+            if os.path.exists(path + '/embeddings.npz'):
+                loaded_data = np.load(path + '/embeddings.npz')
+                self.embeds = np.concatenate([loaded_data[key] for key in loaded_data.keys()])
+            else:
+                self.embeds = np.load(path + '/embeddings.npy')
+
             self.ratings = np.load(path + '/ratings.npy')
             return True
         else:
