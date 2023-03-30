@@ -78,7 +78,6 @@ def get_instructorXL_embeddings(inputs, tokenizer=None, model=None, device='cpu'
     instruction = 'Represent the sentiment:'
     inputs = [[instruction, input] for input in inputs]
 
-    inputs.to(device)
     model.eval()
 
     with torch.no_grad():
@@ -112,7 +111,10 @@ class Embedder():
         for index in tqdm(range(num_full_batches)):
             embeddings_batch = self._get_batch_at(index * batch_size, reviews, batch_size=batch_size, device=device)
             if not isinstance(embeddings_batch, list):
-                embeddings_batch = embeddings_batch.cpu().tolist()
+                if isinstance(embeddings_batch, np.ndarray):
+                    embeddings_batch = embeddings_batch.tolist()
+                elif isinstance(embeddings_batch, torch.Tensor):
+                    embeddings_batch = embeddings_batch.cpu().tolist()
 
             embeddings += embeddings_batch
 
@@ -129,6 +131,8 @@ class Embedder():
             return get_openai_embeddings(reviews_subset, model=self.model)
         elif self.type == 'E5':
             return get_E5_embeddings(reviews_subset, tokenizer=self.tokenizer, model=self.model, device=device)
+        elif self.type == 'InstructorXL':
+            return get_instructorXL_embeddings(reviews_subset, tokenizer=self.tokenizer, model=self.model, device=device)
 
 
 class Dataset():
