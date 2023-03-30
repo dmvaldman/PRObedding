@@ -6,3 +6,6 @@ python-dotenv==1.0.0
 scikit_learn==1.2.2
 tenacity==8.1.0
 tqdm==4.64.1
+transformers
+sentence-transformers
+InstructorEmbedding

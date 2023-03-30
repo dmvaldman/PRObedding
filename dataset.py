@@ -8,15 +8,19 @@ import pandas as pd
 from tenacity import retry, stop_after_attempt
 from datasets import load_dataset
 
+import torch
 import torch.nn.functional as F
 from torch import Tensor
 from transformers import AutoTokenizer, AutoModel
+
+from InstructorEmbedding import INSTRUCTOR
 
 load_dotenv()
 
 MAX_CONTENT_LENGTHS = {
     "openai": 8191,
-    "e5": 1024
+    "E5": 1024,
+    "InstructorXL": 512
 }
 
 def replace_newline(text):
@@ -64,8 +68,22 @@ def get_E5_embeddings(inputs, tokenizer=None, model=None, device='cpu'):
     # Move the batch to the device
     batch_dict = {k: v.to(device) for k, v in batch_dict.items()}
 
-    outputs = model(**batch_dict)
-    embeddings = average_pool(outputs.last_hidden_state, batch_dict['attention_mask'])
+    with torch.no_grad():
+        outputs = model(**batch_dict)
+        embeddings = average_pool(outputs.last_hidden_state, batch_dict['attention_mask'])
+
+    return embeddings
+
+def get_instructorXL_embeddings(inputs, tokenizer=None, model=None, device='cpu'):
+    instruction = 'Represent the sentiment:'
+    inputs = [[instruction, input] for input in inputs]
+
+    inputs.to(device)
+    model.eval()
+
+    with torch.no_grad():
+        embeddings = model.encode(inputs)
+
     return embeddings
 
 
@@ -77,8 +95,11 @@ class Embedder():
             self.tokenizer = None
             openai.api_key = os.getenv('OPENAI_API_KEY')
         elif type == 'E5':
-            self.tokenizer = AutoTokenizer.from_pretrained('intfloat/e5-large')
             self.model = AutoModel.from_pretrained('intfloat/e5-large')
+            self.tokenizer = AutoTokenizer.from_pretrained('intfloat/e5-large')
+        elif type == 'InstructorXL':
+            self.model = INSTRUCTOR('hkunlp/instructor-xl')
+            self.tokenizer = None
 
     def embed(self, dataset, batch_size=50, save=False, device='cpu'):
         if dataset.load(embedder=self.type):
@@ -90,9 +111,13 @@ class Embedder():
         embeddings = []
         for index in tqdm(range(num_full_batches)):
             embeddings_batch = self._get_batch_at(index * batch_size, reviews, batch_size=batch_size, device=device)
+            if not isinstance(embeddings_batch, list):
+                embeddings_batch = embeddings_batch.cpu().tolist()
+
             embeddings += embeddings_batch
 
         dataset.embeds = np.array(embeddings, dtype=np.float64)
+
         if save: dataset.save(self.type)
 
     def _get_batch_at(self, start, reviews, batch_size=10, device='cpu'):

@@ -4,6 +4,25 @@ from sklearn import metrics
 import numpy as np
 import os
 
+from torch import nn
+from torch.nn import functional as F
+
+
+class TorchClassificationModel(nn.Module):
+    def __init__(self, feats_in):
+        super().__init__()
+        self.linear = nn.Linear(feats_in, 1)
+
+    def forward(self, x):
+        outputs = torch.softmax(self.linear(x))
+        return outputs
+
+    def save(self, path):
+        torch.save(self.state_dict(), path)
+
+    def load(self, path):
+        self.load_state_dict(torch.load(path))
+
 class ClassificationModel():
     def __init__(self, type='logistic-regression'):
         self.model = self.get_model(type)
@@ -26,6 +45,16 @@ class ClassificationModel():
         self.model.fit(X, y)
 
         return self._results(X, y)
+
+    def toTorch(self, save=False, path=None):
+        model = TorchClassificationModel(self.input_dim)
+        with torch.no_grad():
+            model.linear.weight.copy_(torch.tensor(self.model.coef_))
+            model.linear.bias.copy_(torch.tensor(self.model.intercept_))
+
+        if save: model.save(path)
+
+        return model
 
     def test(self, dataset):
         X = dataset.embeds
